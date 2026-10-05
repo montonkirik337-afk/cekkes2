@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthCheck Plus - Platform Kesehatan Interaktif & AI Assistant</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between custom-scrollbar">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- AUTH SECTION (Login / Register) -->
+    <div id="auth-section" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-teal-700 via-teal-600 to-emerald-600 relative overflow-hidden">
+        <div class="absolute -top-20 -left-20 w-96 h-96 bg-teal-400/30 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-emerald-400/30 rounded-full blur-3xl animate-pulse"></div>
+
+        <div class="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/40 z-10">
+            <!-- App Brand Header -->
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-teal-100 text-teal-600 mb-3 shadow-inner">
+                    <i class="fa-solid fa-heart-pulse text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-black tracking-tight text-slate-800">HealthCheck<span class="text-teal-600">+</span></h1>
+                <p class="text-xs text-slate-500 mt-1">Platform Evaluasi Kesehatan & Mental Interaktif</p>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="flex bg-slate-100 p-1 rounded-xl mb-6">
+                <button id="tab-login-btn" onclick="switchAuthTab('login')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-white shadow-sm text-teal-700">Masuk</button>
+                <button id="tab-register-btn" onclick="switchAuthTab('register')" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-500 hover:text-slate-800">Daftar Akun</button>
+            </div>
+
+            <!-- Form Login -->
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Email</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-regular fa-envelope"></i></span>
+                        <input type="email" id="login-email" required class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition" placeholder="nama@email.com">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Kata Sandi</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" id="login-password" required class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition" placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg shadow-teal-600/30 transition duration-200 flex items-center justify-center gap-2">
+                    <span>Masuk ke Dashboard</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </form>
+
+            <!-- Form Register -->
+            <form id="register-form" onsubmit="handleRegister(event)" class="space-y-3 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap</label>
+                    <input type="text" id="reg-name" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" placeholder="Ahmad Subagja">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Email</label>
+                        <input type="email" id="reg-email" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" placeholder="ahmad@mail.com">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Kata Sandi</label>
+                        <input type="password" id="reg-password" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" placeholder="••••••••">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Usia (Tahun)</label>
+                        <input type="number" id="reg-age" min="1" max="120" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" placeholder="24">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Kelamin</label>
+                        <select id="reg-gender" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                            <option value="male">Laki-Laki</option>
+                            <option value="female">Perempuan</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tinggi (cm)</label>
+                        <input type="number" id="reg-height" min="50" max="250" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" placeholder="172">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Berat (kg)</label>
+                        <input type="number" id="reg-weight" min="20" max="300" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" placeholder="68">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg shadow-teal-600/30 transition duration-200 mt-2">
+                    Daftar Akun Baru
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APPLICATION WORKSPACE -->
+    <div id="main-app" class="hidden min-h-screen flex flex-col bg-slate-100">
+        <!-- Top Navigation Bar -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16 items-center">
+                    <!-- Brand Logo -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-teal-600 text-white flex items-center justify-center font-bold text-xl shadow-md">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                        </div>
+                        <div>
+                            <span class="font-extrabold text-lg text-slate-800 tracking-tight block">HealthCheck<span class="text-teal-600">+</span></span>
+                            <span class="text-[10px] text-teal-600 font-semibold uppercase tracking-wider block">Interactive Health Suite</span>
+                        </div>
+                    </div>
+
+                    <!-- User Profile Banner -->
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-3 bg-slate-100 px-3.5 py-1.5 rounded-full border border-slate-200">
+                            <div class="w-7 h-7 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs font-bold" id="user-avatar">
+                                U
+                            </div>
+                            <span class="text-xs font-bold text-slate-700" id="nav-user-name">Pengguna</span>
+                        </div>
+                        <button onclick="logout()" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition" title="Keluar">
+                            <i class="fa-solid fa-right-from-bracket text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation Toolbar -->
+            <div class="bg-slate-50 border-t border-slate-200 px-4">
+                <div class="max-w-7xl mx-auto flex space-x-2 overflow-x-auto custom-scrollbar py-2">
+                    <button onclick="switchTab('dashboard')" id="nav-tab-dashboard" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition bg-white text-teal-700 shadow-sm">
+                        <i class="fa-solid fa-chart-pie"></i> Ringkasan
+                    </button>
+                    <button onclick="switchTab('height')" id="nav-tab-height" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition text-slate-600 hover:bg-white/60">
+                        <i class="fa-solid fa-ruler-vertical"></i> Tinggi Sesuai Umur
+                    </button>
+                    <button onclick="switchTab('weight')" id="nav-tab-weight" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition text-slate-600 hover:bg-white/60">
+                        <i class="fa-solid fa-weight-scale"></i> Berat Badan Ideal
+                    </button>
+                    <button onclick="switchTab('calories')" id="nav-tab-calories" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition text-slate-600 hover:bg-white/60">
+                        <i class="fa-solid fa-fire"></i> Kalori Harian
+                    </button>
+                    <button onclick="switchTab('fertility')" id="nav-tab-fertility" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition text-slate-600 hover:bg-white/60">
+                        <i class="fa-solid fa-calendar-heart"></i> Masa Subur
+                    </button>
+                    <button onclick="switchTab('mental')" id="nav-tab-mental" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition text-slate-600 hover:bg-white/60">
+                        <i class="fa-solid fa-brain text-purple-600"></i> Tes Mental (20 Soal)
+                    </button>
+                    <button onclick="switchTab('ai')" id="nav-tab-ai" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition text-slate-600 hover:bg-white/60">
+                        <i class="fa-solid fa-robot text-teal-600"></i> Tanya Gemini AI
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN DASHBOARD CONTENT AREA -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+            <!-- 1. TAB DASHBOARD / RINGKASAN -->
+            <section id="content-dashboard" class="tab-content space-y-6">
+                <!-- Welcome Banner -->
+                <div class="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+                    <div class="relative z-10 max-w-2xl">
+                        <span class="bg-white/20 text-[10px] px-3 py-1 rounded-full uppercase tracking-widest font-bold">Ringkasan Kesehatan Anda</span>
+                        <h2 class="text-2xl sm:text-3xl font-black mt-2" id="dash-greeting">Selamat Datang!</h2>
+                        <p class="text-teal-100 text-xs sm:text-sm mt-2">Gunakan alat evaluasi kesehatan interaktif untuk memantau kondisi fisik, gizi harian, masa subur, serta kesehatan mental secara berkala.</p>
+                    </div>
+                    <i class="fa-solid fa-notes-medical absolute -right-6 -bottom-10 text-9xl text-white/10 pointer-events-none"></i>
+                </div>
+
+                <!-- Metrics Overview Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-ruler-vertical"></i>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Tinggi Badan</p>
+                            <h3 class="text-xl font-black text-slate-800" id="dash-height">-- <span class="text-xs font-normal text-slate-500">cm</span></h3>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-weight-scale"></i>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Berat Badan</p>
+                            <h3 class="text-xl font-black text-slate-800" id="dash-weight">-- <span class="text-xs font-normal text-slate-500">kg</span></h3>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Usia</p>
+                            <h3 class="text-xl font-black text-slate-800" id="dash-age">-- <span class="text-xs font-normal text-slate-500">thn</span></h3>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-venus-mars"></i>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Gender</p>
+                            <h3 class="text-lg font-black text-slate-800 capitalize" id="dash-gender">--</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Action Navigation Modules -->
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-teal-400 transition">
+                        <div>
+                            <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center mb-4">
+                                <i class="fa-solid fa-ruler-combined text-lg"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 text-base">Cek Tinggi & Berat Ideal</h4>
+                            <p class="text-xs text-slate-500 mt-1">Evaluasi apakah tinggi badan Anda ideal sesuai rentang umur serta status indeks massa tubuh (BMI).</p>
+                        </div>
+                        <button onclick="switchTab('weight')" class="mt-6 w-full py-2.5 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 text-slate-700 text-xs font-bold rounded-xl transition">
+                            Uji Berat & Tinggi
+                        </button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-purple-400 transition">
+                        <div>
+                            <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4">
+                                <i class="fa-solid fa-brain text-lg"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 text-base">Tes Mental & Kewarasan</h4>
+                            <p class="text-xs text-slate-500 mt-1">Gunakan 20 pertanyaan standar psikologi untuk mengukur tingkat stres, kecemasan, dan kesehatan mental.</p>
+                        </div>
+                        <button onclick="switchTab('mental')" class="mt-6 w-full py-2.5 bg-slate-100 hover:bg-purple-50 hover:text-purple-700 text-slate-700 text-xs font-bold rounded-xl transition">
+                            Mulai Tes Mental (20 Soal)
+                        </button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-indigo-400 transition">
+                        <div>
+                            <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-4">
+                                <i class="fa-solid fa-robot text-lg"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 text-base">Asisten AI Gemini</h4>
+                            <p class="text-xs text-slate-500 mt-1">Konsultasikan keluhan umum, jadwal makan, rekomendasi olahraga, dan panduan hidup sehat secara real-time.</p>
+                        </div>
+                        <button onclick="switchTab('ai')" class="mt-6 w-full py-2.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-bold rounded-xl transition">
+                            Tanya Gemini AI
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. TAB TINGGI BADAN IDEAL SESUAI UMUR -->
+            <section id="content-height" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center text-xl font-bold">
+                            <i class="fa-solid fa-ruler-vertical"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">Cek Tinggi Badan Ideal Sesuai Umur</h3>
+                            <p class="text-xs text-slate-500">Evaluasi potensi tinggi badan berdasarkan kelompok umur dan standar medis/pertumbuhan.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid lg:grid-cols-3 gap-8">
+                        <div class="space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Usia Saat Ini (Tahun)</label>
+                                <input type="number" id="height-input-age" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" placeholder="24">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Jenis Kelamin</label>
+                                <select id="height-input-gender" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                                    <option value="male">Laki-Laki</option>
+                                    <option value="female">Perempuan</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Tinggi Badan Sekarang (cm)</label>
+                                <input type="number" id="height-input-val" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" placeholder="172">
+                            </div>
+                            <button onclick="evalHeightAge()" class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition shadow-md shadow-teal-600/20">
+                                Analisis Tinggi Badan
+                            </button>
+                        </div>
+
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="grid sm:grid-cols-2 gap-4">
+                                <div class="bg-teal-50 p-5 rounded-2xl border border-teal-200">
+                                    <p class="text-xs text-teal-700 font-bold uppercase tracking-wider">Rentang Standar Rata-Rata Usia</p>
+                                    <h2 class="text-3xl font-black text-teal-900 my-2" id="height-ideal-range">-- cm</h2>
+                                    <p class="text-[11px] text-teal-700">Rujukan rata-rata pertumbuhan usia terkait.</p>
+                                </div>
+                                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 flex flex-col justify-center">
+                                    <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Status Posisi Tinggi Anda</p>
+                                    <h3 class="text-xl font-bold text-slate-800 my-1" id="height-status-text">Belum Dievaluasi</h3>
+                                    <span id="height-status-badge" class="inline-block self-start px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-700 mt-1">--</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 text-xs text-slate-700">
+                                <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                    <i class="fa-solid fa-lightbulb text-amber-500"></i> Catatan Pertumbuhan & Usia:
+                                </h4>
+                                <p id="height-advice-detail">Pilihlah usia dan tinggi badan Anda untuk mendapatkan panduan medis mengenai lempeng epifisis (pertumbuhan tulang) dan pola nutrisi.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. TAB BERAT BADAN IDEAL (BMI / BBI) -->
+            <section id="content-weight" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl font-bold">
+                            <i class="fa-solid fa-weight-scale"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">Cek Berat Badan Ideal & BMI</h3>
+                            <p class="text-xs text-slate-500">Hitung Indeks Massa Tubuh (BMI) dan rentang berat ideal (BBI) berdasarkan tinggi badan.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid lg:grid-cols-3 gap-8">
+                        <div class="space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Tinggi Badan (cm)</label>
+                                <input type="number" id="bmi-input-height" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" placeholder="170">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Berat Badan Saat Ini (kg)</label>
+                                <input type="number" id="bmi-input-weight" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" placeholder="65">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Jenis Kelamin</label>
+                                <select id="bmi-input-gender" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                                    <option value="male">Laki-Laki</option>
+                                    <option value="female">Perempuan</option>
+                                </select>
+                            </div>
+                            <button onclick="calculateBMI()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition shadow-md shadow-emerald-600/20">
+                                Hitung BMI & Berat Ideal
+                            </button>
+                        </div>
+
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="grid sm:grid-cols-2 gap-4">
+                                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 text-center">
+                                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Skor Indeks Massa Tubuh (BMI)</p>
+                                    <h2 class="text-4xl font-black text-teal-600 my-2" id="bmi-score-val">--</h2>
+                                    <span id="bmi-score-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-700">Belum dihitung</span>
+                                </div>
+                                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 flex flex-col justify-center">
+                                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Berat Ideal (Broca Modifikasi)</p>
+                                    <h3 class="text-2xl font-black text-slate-800 my-1" id="bmi-ideal-range-val">-- kg</h3>
+                                    <p class="text-[11px] text-slate-500 mt-1">*Rentang gizi seimbang WHO (BMI 18.5 - 24.9)</p>
+                                </div>
+                            </div>
+
+                            <!-- BMI Scale Bar -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">Skala Kategori BMI WHO</label>
+                                <div class="h-4 w-full bg-slate-200 rounded-full overflow-hidden flex">
+                                    <div class="w-[18.5%] bg-sky-400" title="Kurus (< 18.5)"></div>
+                                    <div class="w-[25%] bg-emerald-500" title="Normal (18.5 - 24.9)"></div>
+                                    <div class="w-[12%] bg-amber-400" title="Gemuk / Overweight (25 - 29.9)"></div>
+                                    <div class="w-[44.5%] bg-rose-500" title="Obesitas (>= 30)"></div>
+                                </div>
+                                <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-bold">
+                                    <span>Kurus (&lt;18.5)</span>
+                                    <span>Normal (18.5-24.9)</span>
+                                    <span>Overweight (25-29.9)</span>
+                                    <span>Obesitas (&ge;30)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. TAB KALORI HARIAN (TDEE / BMR) -->
+            <section id="content-calories" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl font-bold">
+                            <i class="fa-solid fa-fire"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">Kalkulator Kalori Harian (BMR & TDEE)</h3>
+                            <p class="text-xs text-slate-500">Rumus Mifflen-St Jeor untuk menghitung angka metabolisme basal & total pengeluaran energi harian.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid lg:grid-cols-3 gap-8">
+                        <div class="space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Tingkat Aktivitas Fisik</label>
+                                <select id="cal-activity" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                                    <option value="1.2">Sedentari (Jarang / Tidak Olahraga)</option>
+                                    <option value="1.375">Ringan (Olahraga 1-3 hari/minggu)</option>
+                                    <option value="1.55" selected>Sedang (Olahraga 3-5 hari/minggu)</option>
+                                    <option value="1.725">Tinggi (Olahraga 6-7 hari/minggu)</option>
+                                    <option value="1.9">Sangat Tinggi (Pekerja Fisik / Atlet)</option>
+                                </select>
+                            </div>
+
+                            <button onclick="calculateCalories()" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition shadow-md shadow-amber-600/20">
+                                Hitung Target Kalori Harian
+                            </button>
+                        </div>
+
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="grid sm:grid-cols-2 gap-4">
+                                <div class="bg-amber-50 p-5 rounded-2xl border border-amber-200">
+                                    <p class="text-xs text-amber-700 font-bold uppercase tracking-wider">BMR (Metabolisme Basal)</p>
+                                    <h3 class="text-3xl font-black text-amber-900 my-1" id="bmr-val">-- <span class="text-xs font-normal">kcal</span></h3>
+                                    <p class="text-[11px] text-amber-700">Kebutuhan energi minimal fungsi organ saat istirahat.</p>
+                                </div>
+                                <div class="bg-teal-50 p-5 rounded-2xl border border-teal-200">
+                                    <p class="text-xs text-teal-700 font-bold uppercase tracking-wider">TDEE (Total Energi Harian)</p>
+                                    <h3 class="text-3xl font-black text-teal-900 my-1" id="tdee-val">-- <span class="text-xs font-normal">kcal</span></h3>
+                                    <p class="text-[11px] text-teal-700">Kalori harian untuk mempertahankan berat badan.</p>
+                                </div>
+                            </div>
+
+                            <!-- Target Goals -->
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm mb-3">Target Kalori Menurut Tujuan Berat Badan</h4>
+                                <div class="grid sm:grid-cols-3 gap-3">
+                                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
+                                        <p class="text-xs text-slate-500 font-bold">Diet (Menurunkan BB)</p>
+                                        <p class="text-lg font-black text-rose-600 my-1" id="cal-loss">-- kcal</p>
+                                        <span class="text-[10px] text-slate-400">Defisit 500 kcal/hari</span>
+                                    </div>
+                                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
+                                        <p class="text-xs text-slate-500 font-bold">Pertahankan BB</p>
+                                        <p class="text-lg font-black text-teal-600 my-1" id="cal-maintain">-- kcal</p>
+                                        <span class="text-[10px] text-slate-400">Sesuai TDEE</span>
+                                    </div>
+                                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
+                                        <p class="text-xs text-slate-500 font-bold">Surplus (Menaikkan BB)</p>
+                                        <p class="text-lg font-black text-emerald-600 my-1" id="cal-gain">-- kcal</p>
+                                        <span class="text-[10px] text-slate-400">Surplus 500 kcal/hari</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chart -->
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 max-h-56 flex justify-center">
+                                <canvas id="caloriesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. TAB MASA SUBUR IDEAL & SIKLUS -->
+            <section id="content-fertility" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-2xl bg-pink-100 text-pink-600 flex items-center justify-center text-xl font-bold">
+                            <i class="fa-solid fa-calendar-heart"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">Cek Masa Subur Ideal & Reproduksi</h3>
+                            <p class="text-xs text-slate-500">Estimasi puncak ovulasi, jendela masa subur, dan saran reproduksi berdasarkan kelompok usia.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid lg:grid-cols-3 gap-8">
+                        <div class="space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Hari Pertama Haid Terakhir (HPHT)</label>
+                                <input type="date" id="fertility-date" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Durasi Rata-Rata Siklus (Hari)</label>
+                                <input type="number" id="fertility-cycle" value="28" min="20" max="45" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                                <span class="text-[10px] text-slate-400 mt-1 block">*Umumnya 28 hari (normal: 21-35 hari)</span>
+                            </div>
+                            <button onclick="calculateFertility()" class="w-full py-3 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-xl transition shadow-md shadow-pink-600/20">
+                                Hitung Masa Subur
+                            </button>
+                        </div>
+
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="grid sm:grid-cols-3 gap-4">
+                                <div class="bg-pink-50 p-4 rounded-2xl border border-pink-200 text-center">
+                                    <p class="text-xs text-pink-700 font-bold uppercase tracking-wider">Puncak Ovulasi</p>
+                                    <h4 class="text-lg font-black text-pink-900 my-1" id="ovulation-date">--</h4>
+                                    <p class="text-[10px] text-pink-600">Peluang tertinggi</p>
+                                </div>
+                                <div class="bg-purple-50 p-4 rounded-2xl border border-purple-200 text-center">
+                                    <p class="text-xs text-purple-700 font-bold uppercase tracking-wider">Jendela Masa Subur</p>
+                                    <h4 class="text-xs font-bold text-purple-900 my-2" id="fertile-window">--</h4>
+                                    <p class="text-[10px] text-purple-600">Rentang hari subur</p>
+                                </div>
+                                <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-200 text-center">
+                                    <p class="text-xs text-indigo-700 font-bold uppercase tracking-wider">Prediksi Haid Selanjutnya</p>
+                                    <h4 class="text-lg font-black text-indigo-900 my-1" id="next-period-date">--</h4>
+                                    <p class="text-[10px] text-indigo-600">Perkiraan tanggal</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-pink-50/50 p-5 rounded-2xl border border-pink-200 text-xs text-slate-700 space-y-2">
+                                <h4 class="font-bold text-pink-900 text-sm flex items-center gap-2">
+                                    <i class="fa-solid fa-notes-medical"></i> Evaluasi Kesuburan Menurut Usia
+                                </h4>
+                                <p id="fertility-age-advice">Pilih tanggal haid terakhir untuk melihat analisa masa subur serta profil reproduksi sesuai usia Anda.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. TAB TES MENTAL & KEWARASAN (20 SOAL) -->
+            <section id="content-mental" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center text-xl font-bold">
+                                <i class="fa-solid fa-brain"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-800">Tes Kesehatan Mental & Evaluasi Stres</h3>
+                                <p class="text-xs text-slate-500">Jawab 20 pertanyaan situasi psikologis 1 bulan terakhir secara jujur.</p>
+                            </div>
+                        </div>
+                        <button onclick="resetMentalTest()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                    </div>
+
+                    <!-- Test Form Container -->
+                    <form id="mental-test-form" onsubmit="handleMentalSubmit(event)" class="space-y-6">
+                        <div id="questions-container" class="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
+                            <!-- Questions auto populated via JavaScript -->
+                        </div>
+
+                        <button type="submit" class="w-full py-3.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-2xl transition shadow-lg shadow-purple-600/30 text-sm">
+                            Kirim & Lihat Hasil Evaluasi Mental
+                        </button>
+                    </form>
+
+                    <!-- Test Result Container -->
+                    <div id="mental-result-card" class="hidden mt-8 p-6 rounded-3xl border border-purple-200 bg-purple-50/50 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-lg font-bold text-purple-900 flex items-center gap-2">
+                                <i class="fa-solid fa-square-poll-vertical text-purple-600"></i> Hasil Penilaian Kesehatan Mental
+                            </h4>
+                            <span id="mental-badge" class="px-3 py-1 rounded-full text-xs font-black bg-purple-200 text-purple-800">--</span>
+                        </div>
+
+                        <div class="grid sm:grid-cols-3 gap-4">
+                            <div class="bg-white p-4 rounded-2xl border border-purple-100 text-center">
+                                <p class="text-xs text-slate-400 font-bold">Total Skor Kuesioner</p>
+                                <h3 class="text-3xl font-black text-purple-700 my-1" id="mental-score-val">0 / 80</h3>
+                                <p class="text-[10px] text-slate-400">Rentang skor 20 - 80</p>
+                            </div>
+                            <div class="sm:col-span-2 bg-white p-4 rounded-2xl border border-purple-100 flex flex-col justify-center">
+                                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Kategori Diagnosis Mental</p>
+                                <h4 class="text-lg font-bold text-slate-800 my-1" id="mental-category-title">--</h4>
+                                <p class="text-xs text-slate-600" id="mental-category-desc">--</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-2xl border border-purple-100 text-xs text-slate-700 space-y-1">
+                            <p class="font-bold text-purple-900"><i class="fa-solid fa-user-doctor"></i> Rekomendasi Tindakan:</p>
+                            <p id="mental-recommendation">--</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. TAB GEMINI AI CONSULTATION -->
+            <section id="content-ai" class="tab-content hidden space-y-6">
+                <div class="grid lg:grid-cols-3 gap-6">
+                    <!-- API Key Sidebar -->
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 h-fit">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center text-lg font-bold">
+                                <i class="fa-solid fa-key"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-sm">Konfigurasi API Gemini</h3>
+                                <p class="text-[11px] text-slate-400">Diperlukan untuk fitur Tanya AI</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Google Gemini API Key</label>
+                            <input type="password" id="api-key-input" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none" placeholder="Masukkan API Key Anda...">
+                            <span class="text-[10px] text-slate-400 mt-1 block">Tersimpan aman di LocalStorage per browser.</span>
+                        </div>
+
+                        <button onclick="saveApiKey()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition">
+                            Simpan API Key
+                        </button>
+
+                        <div id="api-status-badge" class="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2 text-amber-800 text-xs">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>API Key Belum Diisi</span>
+                        </div>
+
+                        <!-- Quick Prompts -->
+                        <div class="pt-4 border-t border-slate-100">
+                            <label class="block text-xs font-bold text-slate-600 mb-2">Pertanyaan Cepat:</label>
+                            <div class="space-y-1.5">
+                                <button onclick="sendQuickPrompt('Berikan menu makanan gizi seimbang untuk menjaga berat badan ideal')" class="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 text-slate-700 hover:text-teal-700 text-xs transition border border-slate-200/60 font-medium">
+                                    🥗 Menu Gizi Seimbang
+                                </button>
+                                <button onclick="sendQuickPrompt('Bagaimana cara mengatasi kecemasan dan memperbaiki pola tidur?')" class="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 text-slate-700 hover:text-teal-700 text-xs transition border border-slate-200/60 font-medium">
+                                    🧠 Solusi Cemas & Tidur
+                                </button>
+                                <button onclick="sendQuickPrompt('Apa rekomendasi jenis olahraga ringan bagi usia 20-30 tahun?')" class="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 text-slate-700 hover:text-teal-700 text-xs transition border border-slate-200/60 font-medium">
+                                    🏃 Olahraga Ringan Rutin
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat UI Box -->
+                    <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col h-[600px] overflow-hidden">
+                        <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-sm">
+                                    <i class="fa-solid fa-robot"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">HealthCheck AI Assistant</h4>
+                                    <p class="text-[10px] text-teal-600 font-semibold">gemini-2.5-flash model</p>
+                                </div>
+                            </div>
+                            <button onclick="clearChat()" class="text-xs text-slate-400 hover:text-rose-600 transition">
+                                <i class="fa-solid fa-trash-can"></i> Bersihkan Chat
+                            </button>
+                        </div>
+
+                        <!-- Messages Box -->
+                        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4 custom-scrollbar bg-slate-50/50">
+                            <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl text-[11px] text-amber-800 flex items-start gap-2">
+                                <i class="fa-solid fa-user-doctor text-amber-600 text-sm mt-0.5"></i>
+                                <div>
+                                    <b>Disclaimer Medis:</b> Jawaban AI bersifat edukatif dan bukan merupakan pengganti resep, diagnosis, atau tindakan medis langsung dari dokter spesialis.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat Input Form -->
+                        <form onsubmit="handleChatSubmit(event)" class="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
+                            <input type="text" id="chat-input" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" placeholder="Tanyakan seputar nutrisi, diet, kesehatan mental, atau gaya hidup...">
+                            <button type="submit" id="chat-send-btn" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold text-xs transition flex items-center gap-2">
+                                <span>Kirim</span>
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
+            <p>&copy; 2026 HealthCheck Plus - Platform Kesehatan & Evaluasi Mental Interaktif. Supported by Gemini AI.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Application State
+        let currentUser = null;
+        let caloriesChartInstance = null;
+
+        // 20 Psychological Assessment Questions (1-4 scale: Tidak Pernah, Kadang-kadang, Sering, Selalu)
+        const mentalQuestions = [
+            "1. Seberapa sering Anda merasa sulit berkonsentrasi saat bekerja atau belajar?",
+            "2. Seberapa sering Anda merasa cemas, gelisah, atau panik tanpa alasan yang jelas?",
+            "3. Seberapa sering Anda merasa sulit tidur nyenyak atau sering terbangun di malam hari?",
+            "4. Seberapa sering Anda merasa lelah atau kehabisan energi sepanjang hari?",
+            "5. Seberapa sering Anda kehilangan minat pada hobi atau aktivitas yang dulunya disukai?",
+            "6. Seberapa sering Anda merasa sedih, murung, atau hampa secara berlarut-larut?",
+            "7. Seberapa sering Anda merasa mudah marah, tersinggung, atau frustrasi oleh hal kecil?",
+            "8. Seberapa sering Anda merasa tertekan oleh beban kerja, tugas, atau masalah harian?",
+            "9. Seberapa sering Anda merasa kurang percaya diri atau merasa tidak berharga?",
+            "10. Seberapa sering Anda menarik diri dari interaksi sosial dengan teman atau keluarga?",
+            "11. Seberapa sering Anda mengalami ketegangan otot, sakit kepala, atau sakit perut akibat stres?",
+            "12. Seberapa sering Anda mengkhawatirkan masa depan secara berlebihan?",
+            "13. Seberapa sering Anda merasa tidak mampu mengendalikan hal-hal penting dalam hidup Anda?",
+            "14. Seberapa sering Anda merasa jantung berdebar kencang saat menghadapi tekanan?",
+            "15. Seberapa sering Anda menyalahkan diri sendiri atas kesulitan yang terjadi?",
+            "16. Seberapa sering Anda merasa nafsu makan Anda berubah drastis (sangat berkurang/berlebih)?",
+            "17. Seberapa sering Anda merasa kewalahan dengan tanggung jawab sehari-hari?",
+            "18. Seberapa sering Anda merasa tidak ada harapan atau solusi atas masalah Anda?",
+            "19. Seberapa sering Anda merasa emosi Anda tidak stabil atau mudah berubah-ubah?",
+            "20. Seberapa sering Anda merasa membutuhkan tempat curhat namun enggan membukanya?"
+        ];
+
+        // On App Init
+        document.addEventListener('DOMContentLoaded', () => {
+            checkUserSession();
+            loadApiKey();
+            renderMentalQuestions();
+        });
+
+        // Toast Notification System
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgColors = {
+                success: 'bg-emerald-600 text-white',
+                error: 'bg-rose-600 text-white',
+                warning: 'bg-amber-500 text-white',
+                info: 'bg-slate-800 text-white'
+            };
+
+            toast.className = `px-4 py-3 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 transform transition-all duration-300 pointer-events-auto opacity-0 translate-y-2 ${bgColors[type] || bgColors.info}`;
+            toast.innerHTML = `<span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-y-2');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Auth Tabs
+        function switchAuthTab(tab) {
+            const loginForm = document.getElementById('login-form');
+            const regForm = document.getElementById('register-form');
+            const loginBtn = document.getElementById('tab-login-btn');
+            const regBtn = document.getElementById('tab-register-btn');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+                loginBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-white shadow-sm text-teal-700';
+                regBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-500 hover:text-slate-800';
+            } else {
+                loginForm.classList.add('hidden');
+                regForm.classList.remove('hidden');
+                regBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-white shadow-sm text-teal-700';
+                loginBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-500 hover:text-slate-800';
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const age = parseInt(document.getElementById('reg-age').value);
+            const gender = document.getElementById('reg-gender').value;
+            const height = parseFloat(document.getElementById('reg-height').value);
+            const weight = parseFloat(document.getElementById('reg-weight').value);
+
+            const userData = { name, email, password, age, gender, height, weight };
+            localStorage.setItem('hc_user_' + email, JSON.stringify(userData));
+            localStorage.setItem('hc_active_user', email);
+
+            showToast('Registrasi berhasil! Selamat datang.', 'success');
+            checkUserSession();
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            const savedUser = localStorage.getItem('hc_user_' + email);
+            if (savedUser) {
+                const parsed = JSON.parse(savedUser);
+                if (parsed.password === password) {
+                    localStorage.setItem('hc_active_user', email);
+                    showToast('Berhasil masuk ke akun!', 'success');
+                    checkUserSession();
+                    return;
+                }
+            }
+            showToast('Email atau password tidak sesuai.', 'error');
+        }
+
+        function checkUserSession() {
+            const activeEmail = localStorage.getItem('hc_active_user');
+            if (activeEmail) {
+                const savedUser = localStorage.getItem('hc_user_' + activeEmail);
+                if (savedUser) {
+                    currentUser = JSON.parse(savedUser);
+                    document.getElementById('auth-section').classList.add('hidden');
+                    document.getElementById('main-app').classList.remove('hidden');
+                    populateDashboard();
+                    return;
+                }
+            }
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('hidden');
+        }
+
+        function logout() {
+            localStorage.removeItem('hc_active_user');
+            currentUser = null;
+            showToast('Anda telah keluar dari aplikasi.', 'info');
+            checkUserSession();
+        }
+
+        function populateDashboard() {
+            if (!currentUser) return;
+
+            document.getElementById('dash-greeting').innerText = `Halo, ${currentUser.name}!`;
+            document.getElementById('nav-user-name').innerText = currentUser.name;
+            document.getElementById('user-avatar').innerText = currentUser.name.charAt(0).toUpperCase();
+
+            document.getElementById('dash-height').innerHTML = `${currentUser.height} <span class="text-xs font-normal text-slate-500">cm</span>`;
+            document.getElementById('dash-weight').innerHTML = `${currentUser.weight} <span class="text-xs font-normal text-slate-500">kg</span>`;
+            document.getElementById('dash-age').innerHTML = `${currentUser.age} <span class="text-xs font-normal text-slate-500">thn</span>`;
+            document.getElementById('dash-gender').innerText = currentUser.gender === 'male' ? 'Laki-Laki' : 'Perempuan';
+
+            // Sync Inputs Across Features
+            document.getElementById('height-input-age').value = currentUser.age;
+            document.getElementById('height-input-gender').value = currentUser.gender;
+            document.getElementById('height-input-val').value = currentUser.height;
+
+            document.getElementById('bmi-input-height').value = currentUser.height;
+            document.getElementById('bmi-input-weight').value = currentUser.weight;
+            document.getElementById('bmi-input-gender').value = currentUser.gender;
+
+            evalHeightAge();
+            calculateBMI();
+            calculateCalories();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = 'nav-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition text-slate-600 hover:bg-white/60';
+            });
+
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-tab-${tabId}`);
+            if (activeNav) {
+                activeNav.className = 'nav-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition bg-white text-teal-700 shadow-sm';
+            }
+        }
+
+        // Feature 1: Height vs Age Assessment
+        function evalHeightAge() {
+            const age = parseInt(document.getElementById('height-input-age').value) || 20;
+            const gender = document.getElementById('height-input-gender').value;
+            const height = parseFloat(document.getElementById('height-input-val').value) || 165;
+
+            let minIdeal = 160, maxIdeal = 180;
+
+            if (age < 5) { minIdeal = 95; maxIdeal = 110; }
+            else if (age <= 10) { minIdeal = 125; maxIdeal = 142; }
+            else if (age <= 15) { minIdeal = gender === 'male' ? 150 : 148; maxIdeal = gender === 'male' ? 172 : 165; }
+            else if (age <= 18) { minIdeal = gender === 'male' ? 163 : 153; maxIdeal = gender === 'male' ? 180 : 168; }
+            else { minIdeal = gender === 'male' ? 165 : 153; maxIdeal = gender === 'male' ? 182 : 170; }
+
+            document.getElementById('height-ideal-range').innerText = `${minIdeal} - ${maxIdeal} cm`;
+
+            const badge = document.getElementById('height-status-badge');
+            const statusText = document.getElementById('height-status-text');
+
+            if (height < minIdeal) {
+                statusText.innerText = "Di Bawah Rata-Rata Usia";
+                badge.innerText = "Di Bawah Standar";
+                badge.className = "inline-block self-start px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 mt-1";
+            } else if (height <= maxIdeal) {
+                statusText.innerText = "Ideal & Sesuai Standar Usia";
+                badge.innerText = "Normal / Sesuai Usia";
+                badge.className = "inline-block self-start px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 mt-1";
+            } else {
+                statusText.innerText = "Di Atas Rata-Rata Usia";
+                badge.innerText = "Tinggi Optimal";
+                badge.className = "inline-block self-start px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 mt-1";
+            }
+
+            const adviceEl = document.getElementById('height-advice-detail');
+            if (age < 19) {
+                adviceEl.innerHTML = `Di usia <b>${age} tahun</b>, pertumbuhan tulang lempeng epifisis masih aktif. Konsumsi kalsium (susu, keju), vitamin D, serta olahraga peninggi badan (renang, lompat tali) sangat mendukung pencapaian tinggi maksimal.`;
+            } else {
+                adviceEl.innerHTML = `Di usia dewasa (<b>${age} tahun</b>), tinggi badan relatif permanen karena penutupan lempeng epifisis tulang. Fokus utama adalah menjaga postur tubuh tegak, kekuatan otot punggung, dan konsumsi nutrisi seimbang.`;
+            }
+        }
+
+        // Feature 2: Ideal Weight & BMI Calculation
+        function calculateBMI() {
+            const h = parseFloat(document.getElementById('bmi-input-height').value) || 170;
+            const w = parseFloat(document.getElementById('bmi-input-weight').value) || 65;
+            const gender = document.getElementById('bmi-input-gender').value;
+
+            const hMeters = h / 100;
+            const bmi = (w / (hMeters * hMeters)).toFixed(1);
+
+            document.getElementById('bmi-score-val').innerText = bmi;
+
+            const badge = document.getElementById('bmi-score-badge');
+            if (bmi < 18.5) {
+                badge.innerText = 'Kurus (Underweight)';
+                badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800';
+            } else if (bmi <= 24.9) {
+                badge.innerText = 'Normal (Ideal)';
+                badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+            } else if (bmi <= 29.9) {
+                badge.innerText = 'Gemuk (Overweight)';
+                badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
+            } else {
+                badge.innerText = 'Obesitas';
+                badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800';
+            }
+
+            // Broca's Modified Formula for BBI
+            let bbiMin = Math.round((h - 100) * 0.85);
+            let bbiMax = Math.round((h - 100) * 0.95);
+            if (gender === 'female') {
+                bbiMin = Math.round((h - 100) * 0.80);
+                bbiMax = Math.round((h - 100) * 0.90);
+            }
+
+            document.getElementById('bmi-ideal-range-val').innerText = `${bbiMin} kg - ${bbiMax} kg`;
+        }
+
+        // Feature 3: BMR & TDEE Calorie Calculator
+        function calculateCalories() {
+            const h = currentUser ? currentUser.height : 170;
+            const w = currentUser ? currentUser.weight : 65;
+            const age = currentUser ? currentUser.age : 24;
+            const gender = currentUser ? currentUser.gender : 'male';
+            const activity = parseFloat(document.getElementById('cal-activity').value);
+
+            let bmr = (10 * w) + (6.25 * h) - (5 * age);
+            bmr += (gender === 'male') ? 5 : -161;
+            bmr = Math.round(bmr);
+
+            const tdee = Math.round(bmr * activity);
+
+            document.getElementById('bmr-val').innerHTML = `${bmr} <span class="text-xs font-normal">kcal</span>`;
+            document.getElementById('tdee-val').innerHTML = `${tdee} <span class="text-xs font-normal">kcal</span>`;
+
+            document.getElementById('cal-loss').innerText = `${tdee - 500} kcal`;
+            document.getElementById('cal-maintain').innerText = `${tdee} kcal`;
+            document.getElementById('cal-gain').innerText = `${tdee + 500} kcal`;
+
+            renderCaloriesChart(tdee - 500, tdee, tdee + 500);
+        }
+
+        function renderCaloriesChart(loss, maintain, gain) {
+            const ctx = document.getElementById('caloriesChart').getContext('2d');
+            if (caloriesChartInstance) caloriesChartInstance.destroy();
+
+            caloriesChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Defisit (Diet)', 'Maintenans', 'Surplus (Bulking)'],
+                    datasets: [{
+                        data: [loss, maintain, gain],
+                        backgroundColor: ['#f43f5e', '#0d9488', '#10b981'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: false } }
+                }
+            });
+        }
+
+        // Feature 4: Fertility Calculator & Age Advice
+        function calculateFertility() {
+            const dateInput = document.getElementById('fertility-date').value;
+            const cycle = parseInt(document.getElementById('fertility-cycle').value) || 28;
+            const age = currentUser ? currentUser.age : 24;
+
+            if (!dateInput) {
+                showToast('Pilihlah tanggal haid terakhir.', 'warning');
+                return;
+            }
+
+            const hpht = new Date(dateInput);
+            
+            const ovulationOffset = cycle - 14;
+            const ovulationDate = new Date(hpht);
+            ovulationDate.setDate(hpht.getDate() + ovulationOffset);
+
+            const fertileStart = new Date(ovulationDate);
+            fertileStart.setDate(ovulationDate.getDate() - 4);
+            
+            const fertileEnd = new Date(ovulationDate);
+            fertileEnd.setDate(ovulationDate.getDate() + 1);
+
+            const nextPeriod = new Date(hpht);
+            nextPeriod.setDate(hpht.getDate() + cycle);
+
+            const options = { day: 'numeric', month: 'short', year: 'numeric' };
+            document.getElementById('ovulation-date').innerText = ovulationDate.toLocaleDateString('id-ID', options);
+            document.getElementById('fertile-window').innerText = `${fertileStart.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - ${fertileEnd.toLocaleDateString('id-ID', options)}`;
+            document.getElementById('next-period-date').innerText = nextPeriod.toLocaleDateString('id-ID', options);
+
+            const ageAdviceEl = document.getElementById('fertility-age-advice');
+            if (age < 20) {
+                ageAdviceEl.innerHTML = `Di usia <b>${age} tahun</b>, sistem hormonal reproduksi berada dalam fase pematangan. Jaga keteraturan siklus dengan menghindari stres berat dan pola diet ekstrem.`;
+            } else if (age <= 30) {
+                ageAdviceEl.innerHTML = `Usia <b>${age} tahun</b> merupakan puncak kesuburan reproduksi ideal secara medis dengan kualitas sel telur sangat baik. Konsumsi asam folat & gaya hidup aktif direkomendasikan.`;
+            } else if (age <= 38) {
+                ageAdviceEl.innerHTML = `Di usia <b>${age} tahun</b>, tingkat kesuburan bertahap mengalami penurunan alami. Pemantauan siklus ovulasi secara rutin sangat direkomendasikan untuk program kehamilan.`;
+            } else {
+                ageAdviceEl.innerHTML = `Di usia <b>${age} tahun</b>, disarankan melakukan konsultasi dengan Dokter Spesialis Obstetri & Ginekologi (Sp.OG) untuk pemeriksaan cadangan ovarium dan pemantauan kesehatan reproduksi komprehensif.`;
+            }
+        }
+
+        // Feature 5: 20 Questions Mental Test
+        function renderMentalQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            mentalQuestions.forEach((qText, idx) => {
+                const qNum = idx + 1;
+                const card = document.createElement('div');
+                card.className = 'p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-3';
+                card.innerHTML = `
+                    <p class="font-bold text-slate-800 text-sm">${qText}</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-purple-300">
+                            <input type="radio" name="mq_${qNum}" value="1" required class="text-purple-600 focus:ring-purple-500">
+                            <span>Tidak Pernah</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-purple-300">
+                            <input type="radio" name="mq_${qNum}" value="2" class="text-purple-600 focus:ring-purple-500">
+                            <span>Kadang-kadang</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-purple-300">
+                            <input type="radio" name="mq_${qNum}" value="3" class="text-purple-600 focus:ring-purple-500">
+                            <span>Sering</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-purple-300">
+                            <input type="radio" name="mq_${qNum}" value="4" class="text-purple-600 focus:ring-purple-500">
+                            <span>Selalu</span>
+                        </label>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function handleMentalSubmit(e) {
+            e.preventDefault();
+            let totalScore = 0;
+
+            for (let i = 1; i <= 20; i++) {
+                const selected = document.querySelector(`input[name="mq_${i}"]:checked`);
+                if (!selected) {
+                    showToast(`Harap isi semua 20 soal mental (Soal nomor ${i} belum diisi).`, 'warning');
+                    return;
+                }
+                totalScore += parseInt(selected.value);
+            }
+
+            const resultCard = document.getElementById('mental-result-card');
+            resultCard.classList.remove('hidden');
+
+            document.getElementById('mental-score-val').innerText = `${totalScore} / 80`;
+
+            const badge = document.getElementById('mental-badge');
+            const catTitle = document.getElementById('mental-category-title');
+            const catDesc = document.getElementById('mental-category-desc');
+            const rec = document.getElementById('mental-recommendation');
+
+            if (totalScore <= 32) {
+                badge.innerText = 'Sehat / Normal';
+                badge.className = 'px-3 py-1 rounded-full text-xs font-black bg-emerald-200 text-emerald-900';
+                catTitle.innerText = 'Kondisi Mental Stabil & Sehat';
+                catDesc.innerText = 'Anda memiliki tingkat pengelolaan stres yang sangat baik dan daya tahan psikologis yang prima.';
+                rec.innerText = 'Pertahankan kebiasaan pola tidur teratur, olahraga, dan hubungan sosial positif.';
+            } else if (totalScore <= 48) {
+                badge.innerText = 'Stres Ringan';
+                badge.className = 'px-3 py-1 rounded-full text-xs font-black bg-blue-200 text-blue-900';
+                catTitle.innerText = 'Tingkat Stres Ringan';
+                catDesc.innerText = 'Terlihat adanya tekanan harian wajar, namun masih dalam batas toleransi kemampuan emosional Anda.';
+                rec.innerText = 'Lakukan aktivitas relaksasi, meditasi pernapasan, serta sediakan waktu istirahat yang cukup.';
+            } else if (totalScore <= 64) {
+                badge.innerText = 'Stres Sedang';
+                badge.className = 'px-3 py-1 rounded-full text-xs font-black bg-amber-200 text-amber-900';
+                catTitle.innerText = 'Tingkat Stres Sedang (Perlu Perhatian)';
+                catDesc.innerText = 'Tanda-tanda kelelahan emosional dan kecemasan mulai mengganggu efisiensi aktivitas harian Anda.';
+                rec.innerText = 'Batasi beban kerja berlebih, kurangi asupan kafein, ceritakan beban pikiran kepada kerabat terdekat, dan pertimbangkan relaksasi terpadu.';
+            } else {
+                badge.innerText = 'Perlu Konsultasi Professional';
+                badge.className = 'px-3 py-1 rounded-full text-xs font-black bg-rose-200 text-rose-900';
+                catTitle.innerText = 'Indikasi Beban Mental Tinggi';
+                catDesc.innerText = 'Skor menunjukkan Anda sedang berada di bawah tekanan emosional dan tingkat stres berat.';
+                rec.innerText = 'Sangat disarankan untuk melakukan sesi konsultasi terbuka dengan Psikolog Klinis atau Psikiater untuk pertolongan medis profesional.';
+            }
+
+            resultCard.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetMentalTest() {
+            document.getElementById('mental-test-form').reset();
+            document.getElementById('mental-result-card').classList.add('hidden');
+            showToast('Tes mental direset.', 'info');
+        }
+
+        // Feature 6: Gemini AI Handler
+        function saveApiKey() {
+            const key = document.getElementById('api-key-input').value.trim();
+            if (key) {
+                localStorage.setItem('hc_gemini_api_key', key);
+                showToast('API Key Gemini berhasil disimpan!', 'success');
+                updateApiBadge(true);
+            } else {
+                showToast('Masukkan API Key yang valid.', 'warning');
+            }
+        }
+
+        function loadApiKey() {
+            const key = localStorage.getItem('hc_gemini_api_key') || '';
+            if (key) {
+                document.getElementById('api-key-input').value = key;
+                updateApiBadge(true);
+            } else {
+                updateApiBadge(false);
+            }
+        }
+
+        function updateApiBadge(active) {
+            const badge = document.getElementById('api-status-badge');
+            if (active) {
+                badge.className = 'p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-emerald-800 text-xs font-medium';
+                badge.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i> <span>API Key Gemini Aktif</span>';
+            } else {
+                badge.className = 'p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2 text-amber-800 text-xs font-medium';
+                badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-600"></i> <span>API Key Belum Diisi</span>';
+            }
+        }
+
+        function sendQuickPrompt(promptText) {
+            document.getElementById('chat-input').value = promptText;
+            handleChatSubmit(new Event('submit'));
+        }
+
+        function clearChat() {
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = `
+                <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl text-[11px] text-amber-800 flex items-start gap-2">
+                    <i class="fa-solid fa-user-doctor text-amber-600 text-sm mt-0.5"></i>
+                    <div><b>Disclaimer Medis:</b> Jawaban AI bersifat edukatif dan bukan merupakan pengganti resep atau diagnosis medis langsung.</div>
+                </div>
+            `;
+        }
+
+        async function handleChatSubmit(e) {
+            e.preventDefault();
+            const inputEl = document.getElementById('chat-input');
+            const message = inputEl.value.trim();
+            if (!message) return;
+
+            const apiKey = localStorage.getItem('hc_gemini_api_key') || '';
+            if (!apiKey) {
+                showToast('Harap masukkan dan simpan API Key Gemini terlebih dahulu di menu sebelah kiri.', 'warning');
+                return;
+            }
+
+            appendChatMessage('user', message);
+            inputEl.value = '';
+
+            const typingId = appendTypingIndicator();
+
+            try {
+                const systemPrompt = `Anda adalah HealthCheck AI Assistant, konsultan kesehatan, gizi, dan psikologi yang ramah dan empatik.
+                Data Pengguna: Nama: ${currentUser ? currentUser.name : 'Pengguna'}, Usia: ${currentUser ? currentUser.age : 24} tahun, Tinggi: ${currentUser ? currentUser.height : 170} cm, Berat: ${currentUser ? currentUser.weight : 65} kg.
+                Berikan tanggapan yang terstruktur, berbasis bukti ilmiah, mudah dipahami, dan ramah. Selalu cantumkan himbauan untuk berkonsultasi ke dokter/psikolog jika keluhan berlanjut.`;
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: message }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                removeTypingIndicator(typingId);
+
+                if (!response.ok) {
+                    if (response.status === 400 || response.status === 403) {
+                        throw new Error("API Key Gemini tidak valid atau tidak memiliki izin akses.");
+                    } else if (response.status === 429) {
+                        throw new Error("Batas pemanggilan API Key gratis tercapai (Rate Limit). Harap tunggu beberapa saat.");
+                    } else {
+                        throw new Error(`Gagal menghubungi server Gemini (Error HTTP ${response.status}).`);
+                    }
+                }
+
+                const data = await response.json();
+                const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Maaf, AI tidak memberikan respons yang dapat dibaca.';
+                appendChatMessage('ai', replyText);
+
+            } catch (err) {
+                removeTypingIndicator(typingId);
+                appendChatMessage('ai', `⚠️ Kendala Akses Gemini AI: ${err.message}`);
+            }
+        }
+
+        function appendChatMessage(sender, text) {
+            const container = document.getElementById('chat-messages');
+            const wrapper = document.createElement('div');
+
+            if (sender === 'user') {
+                wrapper.className = 'flex justify-end';
+                wrapper.innerHTML = `
+                    <div class="bg-teal-600 text-white rounded-2xl rounded-tr-none px-4 py-2.5 max-w-[80%] text-xs shadow-sm">
+                        ${escapeHtml(text)}
+                    </div>
+                `;
+            } else {
+                wrapper.className = 'flex justify-start gap-2.5';
+                wrapper.innerHTML = `
+                    <div class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold shrink-0">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div class="bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-none px-4 py-2.5 max-w-[80%] text-xs shadow-sm space-y-1">
+                        ${formatMarkdown(text)}
+                    </div>
+                `;
+            }
+
+            container.appendChild(wrapper);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function appendTypingIndicator() {
+            const container = document.getElementById('chat-messages');
+            const id = 'typing-' + Date.now();
+            const wrapper = document.createElement('div');
+            wrapper.id = id;
+            wrapper.className = 'flex justify-start gap-2.5';
+            wrapper.innerHTML = `
+                <div class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold shrink-0">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none px-4 py-3 text-xs shadow-sm flex items-center gap-1.5">
+                    <span class="w-2 h-2 bg-teal-500 rounded-full animate-bounce"></span>
+                    <span class="w-2 h-2 bg-teal-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                    <span class="w-2 h-2 bg-teal-500 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                </div>
+            `;
+            container.appendChild(wrapper);
+            container.scrollTop = container.scrollHeight;
+            return id;
+        }
+
+        function removeTypingIndicator(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function formatMarkdown(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+                .replace(/\*(.*?)\*/g, '<i>$1</i>')
+                .replace(/\n/g, '<br>');
+        }
+    </script>
+</body>
+</html>
